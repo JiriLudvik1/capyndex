@@ -3,7 +3,8 @@ using Capyndex.Services;
 
 namespace Capyndex.Features.Upload;
 
-public class UploadEndpoint(SearchIndex searchIndexService) : Endpoint<UploadRequest, UploadResponse>
+public class UploadEndpoint(SearchIndex searchIndexService, RedisIndexService redisIndexService)
+    : Endpoint<UploadRequest, UploadResponse>
 {
     public override void Configure()
     {
@@ -14,7 +15,9 @@ public class UploadEndpoint(SearchIndex searchIndexService) : Endpoint<UploadReq
     public override async Task HandleAsync(UploadRequest request, CancellationToken ct)
     {
         var document = DocumentExtensions.NewFromRequest(request);
-        searchIndexService.IndexDocument(document);
+
+        // searchIndexService.IndexDocument(document);
+        redisIndexService.AddToIndexAsync(document);
         await SendAsync(new(document.Id), cancellation: ct);
     }
 }

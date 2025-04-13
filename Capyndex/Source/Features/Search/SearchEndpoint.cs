@@ -2,7 +2,8 @@
 
 namespace Capyndex.Features.Search;
 
-public class SearchEndpoint(SearchIndex searchIndexService) : Endpoint<SearchRequest, SearchResponse>
+public class SearchEndpoint(SearchIndex searchIndexService, RedisIndexService redisIndexService)
+    : Endpoint<SearchRequest, SearchResponse>
 {
     public override void Configure()
     {
@@ -12,7 +13,7 @@ public class SearchEndpoint(SearchIndex searchIndexService) : Endpoint<SearchReq
 
     public override async Task HandleAsync(SearchRequest request, CancellationToken ct)
     {
-        var searchResults = searchIndexService.Search(request.Query);
+        var searchResults = await redisIndexService.GetDocumentsForTermAsync(request.Query);
         await SendAsync(new(searchResults), cancellation: ct);
     }
 }

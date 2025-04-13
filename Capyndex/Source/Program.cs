@@ -1,5 +1,6 @@
 using Capyndex.Infrastructure;
 using Capyndex.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
@@ -9,6 +10,8 @@ builder.Services
        .SwaggerDocument();
 
 builder.Services.AddSingleton<SearchIndex>();
+builder.Services.AddSingleton<RedisIndexService>();
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379"));
 
 var app = builder.Build();
 app.UseAuthentication()
