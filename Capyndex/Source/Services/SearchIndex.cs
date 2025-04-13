@@ -57,4 +57,16 @@ public sealed class SearchIndex
             .OrderByDescending(x => x.Score)
             .ToList();
     }
+
+    public Document? GetDocument(Guid id)
+    {
+        var exists = _documents.TryGetValue(id, out var content);
+
+        if (!exists || content is null)
+        {
+            return null;
+        }
+
+        return new() { Id = id, Content = content };
+    }
 }
