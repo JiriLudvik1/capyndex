@@ -15,6 +15,6 @@ public class UploadEndpoint(SearchIndex searchIndexService) : Endpoint<UploadReq
     {
         var document = DocumentExtensions.NewFromRequest(request);
         searchIndexService.IndexDocument(document);
-        await SendAsync(new(document.Id));
+        await SendAsync(new(document.Id), cancellation: ct);
     }
 }

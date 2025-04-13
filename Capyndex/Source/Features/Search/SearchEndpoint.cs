@@ -13,6 +13,6 @@ public class SearchEndpoint(SearchIndex searchIndexService) : Endpoint<SearchReq
     public override async Task HandleAsync(SearchRequest request, CancellationToken ct)
     {
         var searchResults = searchIndexService.Search(request.Query);
-        await SendAsync(new(searchResults));
+        await SendAsync(new(searchResults), cancellation: ct);
     }
 }
