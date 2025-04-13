@@ -1,11 +1,15 @@
-var bld = WebApplication.CreateBuilder(args);
-bld.Services
-    .AddAuthenticationJwtBearer(s => s.SigningKey = bld.Configuration["Auth:JwtKey"])
+using Capyndex.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services
+    .AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Auth:JwtKey"])
     .AddAuthorization()
     .AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All)
     .SwaggerDocument();
 
-var app = bld.Build();
+builder.Services.AddSingleton<SearchIndex>();
+
+var app = builder.Build();
 app.UseAuthentication()
     .UseAuthorization()
     .UseFastEndpoints(
