@@ -2,7 +2,7 @@
 
 namespace Capyndex.Features.Search;
 
-public class SearchEndpoint(SearchIndex searchIndexService, RedisIndexService redisIndexService)
+public class SearchEndpoint(RedisIndexService redisIndexService)
     : Endpoint<SearchRequest, SearchResponse>
 {
     public override void Configure()

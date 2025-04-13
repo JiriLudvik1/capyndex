@@ -1,9 +1,10 @@
-﻿using Capyndex.Models;
+﻿using Capyndex.Database;
+using Capyndex.Models;
 using Capyndex.Services;
 
 namespace Capyndex.Features.Upload;
 
-public class UploadEndpoint(SearchIndex searchIndexService, RedisIndexService redisIndexService)
+public class UploadEndpoint(RedisIndexService redisIndexService, AppDbContext dbContext)
     : Endpoint<UploadRequest, UploadResponse>
 {
     public override void Configure()
@@ -16,8 +17,10 @@ public class UploadEndpoint(SearchIndex searchIndexService, RedisIndexService re
     {
         var document = DocumentExtensions.NewFromRequest(request);
 
-        // searchIndexService.IndexDocument(document);
-        redisIndexService.AddToIndexAsync(document);
+        await dbContext.Documents.AddAsync(document, ct);
+        await redisIndexService.AddToIndexAsync(document);
+        await dbContext.SaveChangesAsync(ct);
+
         await SendAsync(new(document.Id), cancellation: ct);
     }
 }

@@ -3,14 +3,9 @@ using StackExchange.Redis;
 
 namespace Capyndex.Services;
 
-public class RedisIndexService
+public class RedisIndexService(IConnectionMultiplexer redis)
 {
-    private readonly IDatabase _db;
-
-    public RedisIndexService(IConnectionMultiplexer redis)
-    {
-        _db = redis.GetDatabase();
-    }
+    private readonly IDatabase _db = redis.GetDatabase();
 
     public async Task AddToIndexAsync(Document document)
     {
