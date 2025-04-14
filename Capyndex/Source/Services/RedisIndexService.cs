@@ -23,7 +23,7 @@ public class RedisIndexService(IConnectionMultiplexer redis)
         await Task.WhenAll(tasks);
     }
 
-    public async Task<List<SearchResult>> GetDocumentsForTermAsync(string term)
+    public async Task<List<SearchResult>> GetDocumentTermFrequenciesAsync(string term)
     {
         var key = $"index:{term}";
         var entries = await _db.HashGetAllAsync(key);

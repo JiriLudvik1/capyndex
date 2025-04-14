@@ -37,14 +37,16 @@ namespace Capyndex.DataSeeding
         {
             Console.WriteLine($"Starting to seed {count} documents...");
 
-            var tasks = new List<Task>();
             for (int i = 0; i < count; i++)
             {
                 var content = GenerateRandomContent();
-                tasks.Add(UploadContentAsync(content));
-            }
+                await UploadContentAsync(content);
 
-            await Task.WhenAll(tasks);
+                if (i % 10 == 0)
+                {
+                    Console.WriteLine($"Uploaded {i} documents");
+                }
+            }
 
             Console.WriteLine("Data seeding completed!");
         }
@@ -115,6 +117,6 @@ public static class DataSeedingProgram
         var baseUrl = "http://localhost:5000"; // Change this to your actual base URL
         var seeder = new UploadDataSeeder(baseUrl);
 
-        Task.Run(() => seeder.SeedDataAsync(1500)).GetAwaiter().GetResult();
+        Task.Run(() => seeder.SeedDataAsync(1000)).GetAwaiter().GetResult();
     }
 }
