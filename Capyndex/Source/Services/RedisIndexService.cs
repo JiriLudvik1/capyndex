@@ -107,35 +107,42 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
             }
         }
 
-        // Process in batches to reduce Redis round trips
-        const int batchSize = 5;
-        var batchTasks = new List<Task<HashEntry[]>>();
-        var keyToTermMap = new Dictionary<string, string>();
+        // Process in smaller chunks to avoid timeouts
+        const int pipelineChunkSize = 5;
+        var allTermResults = new Dictionary<string, HashEntry[]>(terms.Count);
 
-        // Prepare all Redis keys and batch the requests
-        foreach (var term in terms)
+        for (int i = 0; i < terms.Count; i += pipelineChunkSize)
         {
-            var key = $"index:{term}";
-            keyToTermMap[key] = term;
-            batchTasks.Add(_db.HashGetAllAsync(key));
+            // Take a chunk of terms
+            var chunkTerms = terms.Skip(i).Take(pipelineChunkSize).ToList();
 
-            // Process in batches to avoid overwhelming Redis
-            if (batchTasks.Count >= batchSize)
+            // Create a batch for this chunk
+            var batch = _db.CreateBatch();
+            var chunkTasks = new Dictionary<string, Task<HashEntry[]>>();
+
+            // Add commands to the batch
+            foreach (var term in chunkTerms)
             {
-                await Task.WhenAll(batchTasks);
-                batchTasks.Clear();
+                var key = $"index:{term}";
+                chunkTasks[term] = batch.HashGetAllAsync(key);
+            }
+
+            // Execute this batch
+            batch.Execute();
+
+            // Wait for all results in this chunk
+            await Task.WhenAll(chunkTasks.Values);
+
+            // Store the results
+            foreach (var kvp in chunkTasks)
+            {
+                allTermResults[kvp.Key] = await kvp.Value;
             }
         }
 
-        // Process any remaining tasks
-        if (batchTasks.Count > 0)
-        {
-            await Task.WhenAll(batchTasks);
-        }
-
-        // Get results from first term to initialize our set
-        var firstKey = $"index:{terms[0]}";
-        var firstEntries = await _db.HashGetAllAsync(firstKey);
+        // Process results similar to before
+        var firstTerm = terms[0];
+        var firstEntries = allTermResults[firstTerm];
 
         if (firstEntries.Length == 0 || terms.Count == 1)
         {
@@ -152,8 +159,7 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
 
         foreach (var term in terms.Skip(1)) // Skip first term as we already processed it
         {
-            var key = $"index:{term}";
-            var entries = await _db.HashGetAllAsync(key);
+            var entries = allTermResults[term];
 
             // Skip rare terms that appear in very few documents (optional)
             if (entries.Length < 3) // Adjust threshold as needed
