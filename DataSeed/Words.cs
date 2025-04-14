@@ -29,7 +29,20 @@ public static class Words
         "version", "update", "install", "build", "deploy", "run", "execute", "test",
         "debug", "log", "cache", "memory", "storage", "disk", "drive", "backup", "restore",
         "save", "load", "read", "write", "create", "delete", "edit", "modify", "change",
-        "get", "set", "put", "post", "request", "response", "header", "body", "status"
+        "get", "set", "put", "post", "request", "response", "header", "body", "status",
+
+        // New common words - additional general
+        "each", "every", "while", "during", "through", "without", "within", "across",
+        "among", "against", "along", "around", "since", "until", "though", "although",
+        "despite", "except", "unless", "whether", "whose", "whom", "myself", "yourself",
+        "himself", "herself", "itself", "ourselves", "themselves", "each", "both", "few",
+        "several", "enough", "little", "less", "least", "another", "same", "different",
+
+        // New common words - business/project oriented
+        "team", "project", "plan", "goal", "task", "schedule", "deadline", "meeting",
+        "report", "review", "milestone", "progress", "priority", "resource", "budget",
+        "cost", "time", "risk", "issue", "solution", "decision", "approval", "feedback",
+        "customer", "client", "partner", "vendor", "stakeholder", "requirement", "scope"
     ];
 
     public static readonly string[] LessCommonWords =
@@ -64,6 +77,26 @@ public static class Words
         "dimensionality", "embeddings", "ensemble", "epoch", "feature", "gradient",
         "hyperparameter", "inference", "keras", "learning", "lstm", "neural", "normalization",
         "overfitting", "pytorch", "quantization", "recurrent", "regression", "reinforcement",
-        "supervised", "tensorflow", "transformer", "underfitting", "unsupervised"
+        "supervised", "tensorflow", "transformer", "underfitting", "unsupervised",
+
+        // New less common words - advanced technical
+        "amortized", "anisotropic", "anomaly-detection", "antipattern", "arbitrage",
+        "atomicity", "autocorrelation", "autoscaling", "bifurcation", "bitmask",
+        "Byzantine-fault", "canonicalization", "cardinality", "chromatography", "coefficiency",
+        "combinatorial", "contextualization", "contravariant", "counterfactual", "cross-entropy",
+        "cyclometric", "deconvolution", "differentiable", "disambiguation", "discretization",
+        "eigenvector", "empirical", "entropy", "equiprobable", "ergodic", "etcd", "eviction",
+        "evolutionary", "exabyte", "extrapolation", "finalization", "formalization", "fronthaul",
+        "fuzzy-logic", "geospatial", "grapheme", "homomorphic", "hyperconverged", "impedance",
+        "indirection", "inductive", "isomorphic", "juxtaposition", "kernelization",
+
+        // New domain-specific terms
+        "biocomputing", "cryptoeconomics", "cyberphysical", "devopsecfinops", "geofencing",
+        "genomics", "geostationary", "homologation", "hydroinformatics", "immunoinformatics",
+        "interferometry", "magnetoencephalography", "metabolomics", "metamorphic",
+        "nanofabrication", "neuroevolution", "ontological", "ophthalmological", "pharmacokinetic",
+        "phenomenological", "photogrammetry", "proteomics", "psychoacoustics", "radiometric",
+        "seismological", "spectroscopic", "stochastic", "stratification", "teleological",
+        "thermodynamic"
     ];
 }

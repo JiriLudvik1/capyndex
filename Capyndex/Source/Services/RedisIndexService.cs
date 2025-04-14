@@ -85,15 +85,16 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
         {
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var documents =
+            var documentIds =
                 await dbContext.Documents
                                .Where(d => d.Content.Contains(query))
                                .AsNoTracking()
+                               .Select(d => d.Id)
                                .ToListAsync();
 
-            if (documents.Count == 1)
+            if (documentIds.Count == 1)
             {
-                return documents.Select(d => d.Id).ToArray();
+                return documentIds.ToArray();
             }
 
             // Keep only the first 20 terms or filter to keep longer, more significant terms
@@ -110,15 +111,20 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
         // Process in smaller chunks to avoid timeouts
         const int pipelineChunkSize = 5;
         var allTermResults = new Dictionary<string, HashEntry[]>(terms.Count);
+        var chunkTasks = new Dictionary<string, Task<HashEntry[]>>();
 
         for (int i = 0; i < terms.Count; i += pipelineChunkSize)
         {
+            if (chunkTasks.Count > 0)
+            {
+                chunkTasks.Clear();
+            }
+
             // Take a chunk of terms
             var chunkTerms = terms.Skip(i).Take(pipelineChunkSize).ToList();
 
             // Create a batch for this chunk
             var batch = _db.CreateBatch();
-            var chunkTasks = new Dictionary<string, Task<HashEntry[]>>();
 
             // Add commands to the batch
             foreach (var term in chunkTerms)
@@ -140,22 +146,28 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
             }
         }
 
-        // Process results similar to before
+        // Process results
         var firstTerm = terms[0];
         var firstEntries = allTermResults[firstTerm];
 
-        if (firstEntries.Length == 0 || terms.Count == 1)
+        if (firstEntries.Length == 0)
         {
+            return []; // No matches for the first term
+        }
+
+        if (terms.Count == 1)
+        {
+            // Only perform Guid parsing once at the end for the single term scenario
             return firstEntries.Select(entry => Guid.Parse(entry.Name!)).ToArray();
         }
 
-        // Create a hashset with initial capacity to avoid resizing
-        var matchingDocIds = new HashSet<Guid>(firstEntries.Length);
+        // Work with string keys instead of Guids for the intersection operations
+        var matchingDocIdStrings = new HashSet<string>(
+            firstEntries.Select(entry => entry.Name!.ToString()),
+            StringComparer.Ordinal); // Using StringComparer.Ordinal for performance
 
-        foreach (var entry in firstEntries)
-        {
-            matchingDocIds.Add(Guid.Parse(entry.Name!));
-        }
+        // Reusable hashset for intersection operations
+        HashSet<string>? termDocIdStrings = null;
 
         foreach (var term in terms.Skip(1)) // Skip first term as we already processed it
         {
@@ -167,25 +179,40 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
                 continue;
             }
 
-            // Convert entries to HashSet for efficient intersection
-            var termDocIds = new HashSet<Guid>(entries.Length);
+            // Extract all names from entries in one go
+            var entryNames = new string[entries.Length];
 
-            foreach (var entry in entries)
+            for (int i = 0; i < entries.Length; i++)
             {
-                termDocIds.Add(Guid.Parse(entry.Name!));
+                entryNames[i] = entries[i].Name!;
+            }
+
+            // Reuse or create the hashset
+            if (termDocIdStrings == null)
+            {
+                // Initialize with all entry names at once
+                termDocIdStrings = new(entryNames, StringComparer.Ordinal);
+            }
+            else
+            {
+                termDocIdStrings.Clear(); // Clear for reuse
+
+                // Add all entry names at once using UnionWith
+                termDocIdStrings.UnionWith(entryNames);
             }
 
             // Keep only documents that exist in both sets
-            matchingDocIds.IntersectWith(termDocIds);
+            matchingDocIdStrings.IntersectWith(termDocIdStrings);
 
             // Early exit if no matches remain
-            if (matchingDocIds.Count == 0)
+            if (matchingDocIdStrings.Count == 0)
             {
-                break;
+                return [];
             }
         }
 
-        return matchingDocIds.ToArray();
+        // Only convert to Guid array at the very end
+        return matchingDocIdStrings.Select(Guid.Parse).ToArray();
     }
 
     public async Task<bool> IsEmptyAsync()
