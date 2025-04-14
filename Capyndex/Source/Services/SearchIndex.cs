@@ -34,29 +34,29 @@ public sealed class SearchIndex
         }
     }
 
-    public List<SearchResult> Search(string query)
-    {
-        var tokens = Tokenizer.Tokenize(query);
-        var scoreMap = new Dictionary<Guid, int>();
-
-        foreach (var token in tokens)
-        {
-            if (!_invertedIndex.TryGetValue(token, out var docFrequencies))
-            {
-                continue;
-            }
-
-            foreach (var (docId, frequency) in docFrequencies)
-            {
-                scoreMap[docId] = scoreMap.GetValueOrDefault(docId, 0) + frequency;
-            }
-        }
-
-        return scoreMap
-               .Select(x => new SearchResult { Id = x.Key, Score = x.Value })
-               .OrderByDescending(x => x.Score)
-               .ToList();
-    }
+    // public List<SearchResult> Search(string query)
+    // {
+    //     var tokens = Tokenizer.Tokenize(query);
+    //     var scoreMap = new Dictionary<Guid, int>();
+    //
+    //     foreach (var token in tokens)
+    //     {
+    //         if (!_invertedIndex.TryGetValue(token, out var docFrequencies))
+    //         {
+    //             continue;
+    //         }
+    //
+    //         foreach (var (docId, frequency) in docFrequencies)
+    //         {
+    //             scoreMap[docId] = scoreMap.GetValueOrDefault(docId, 0) + frequency;
+    //         }
+    //     }
+    //
+    //     return scoreMap
+    //            .Select(x => new SearchResult { Id = x.Key, Score = x.Value })
+    //            .OrderByDescending(x => x.Score)
+    //            .ToList();
+    // }
 
     public Document? GetDocument(Guid id)
     {

@@ -65,12 +65,12 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
         var entries = await _db.HashGetAllAsync(key);
 
         return entries
-               .Select(e => new SearchResult { Id = Guid.Parse(e.Name!), Score = (int)e.Value! })
+               .Select(e => new SearchResult { Id = e.Name!, Score = (int)e.Value! })
                .OrderByDescending(x => x.Score)
                .ToList();
     }
 
-    public async Task<Guid[]> GetFullTextSearchAsync(string query)
+    public async Task<string[]> GetFullTextSearchAsync(string query)
     {
         // Early return for empty tokens
         var terms = Tokenizer.Tokenize(query).ToList();
@@ -94,7 +94,7 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
 
             if (documentIds.Count == 1)
             {
-                return documentIds.ToArray();
+                return documentIds.Select(x => x.ToString()).ToArray();
             }
 
             // Keep only the first 20 terms or filter to keep longer, more significant terms
@@ -158,7 +158,7 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
         if (terms.Count == 1)
         {
             // Only perform Guid parsing once at the end for the single term scenario
-            return firstEntries.Select(entry => Guid.Parse(entry.Name!)).ToArray();
+            return firstEntries.Select(entry => entry.Name.ToString()).ToArray();
         }
 
         // Work with string keys instead of Guids for the intersection operations
@@ -212,7 +212,7 @@ public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider se
         }
 
         // Only convert to Guid array at the very end
-        return matchingDocIdStrings.Select(Guid.Parse).ToArray();
+        return matchingDocIdStrings.ToArray();
     }
 
     public async Task<bool> IsEmptyAsync()

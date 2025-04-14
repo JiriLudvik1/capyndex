@@ -2,6 +2,6 @@
 
 public sealed record SearchResult
 {
-    public required Guid Id { get; init; }
+    public required string Id { get; init; }
     public required int Score { get; init; }
 }

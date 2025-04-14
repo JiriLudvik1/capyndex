@@ -4,7 +4,7 @@ namespace Capyndex.Features.Search;
 
 public sealed record SearchRequest(string Query);
 
-public sealed record SearchResponse(Guid[] Results);
+public sealed record SearchResponse(string[] Results);
 
 public class SearchEndpoint(RedisIndexService redisIndexService) : Endpoint<SearchRequest, SearchResponse>
 {
