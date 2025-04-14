@@ -7,7 +7,7 @@ try
     Console.WriteLine("-------------------------------");
 
     var baseUrl = "http://localhost:5000";
-    var documentCount = 3000;
+    var documentCount = 300000;
 
 // Allow command line arguments to override defaults
     if (args.Length > 0)

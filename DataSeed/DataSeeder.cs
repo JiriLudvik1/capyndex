@@ -10,7 +10,7 @@ public class DataSeeder
     private readonly Random _random = new();
     private readonly int _maxConcurrentRequests;
 
-    public DataSeeder(string baseUrl, int maxConcurrentRequests = 200)
+    public DataSeeder(string baseUrl, int maxConcurrentRequests = 100)
     {
         _httpClient = new HttpClient
         {
