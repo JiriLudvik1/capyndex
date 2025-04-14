@@ -1,27 +1,27 @@
+﻿// See https://aka.ms/new-console-template for more information
+
+using Capyndex;
 using Capyndex.Database;
-using Capyndex.Infrastructure;
+using Capyndex.Features.Upload;
 using Capyndex.Services;
+using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 using StackExchange.Redis;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services
-       .AddAuthenticationJwtBearer(s => s.SigningKey = builder.Configuration["Auth:JwtKey"])
-       .AddAuthorization()
-       .AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All)
-       .SwaggerDocument();
+var builder = new HostApplicationBuilder();
 
-// Application services
-builder.Services.AddSingleton<SearchIndex>();
+// Register necessary services
+// builder.Services.AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All);
 builder.Services.AddSingleton<RedisIndexService>();
 
-// Redis, Postgres
+var connectionString = "Host=localhost;Port=5432;Database=documents_db;Username=postgres;Password=password";
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379"));
 builder.Services.AddDbContext<AppDbContext>(
     options =>
     {
-        var connectionString = builder.Configuration.GetConnectionString("Postgres");
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString)
         {
             // The minimum number of connections in the pool
@@ -52,18 +52,18 @@ builder.Services.AddDbContext<AppDbContext>(
             });
     });
 
-var app = builder.Build();
-app.UseAuthentication()
-   .UseAuthorization()
-   .UseFastEndpoints(
-       c =>
-       {
-           // c.Endpoints.Filter = _ => false;
-           c.Binding.ReflectionCache.AddFromCapyndex();
-           c.Errors.UseProblemDetails();
-       })
-   .UseCustomExceptionHandler()
-   .UseSwaggerGen();
-app.Run();
+// Build the host
+var host = builder.Build();
 
-public partial class Program;
+// Create an instance of the endpoint directly
+var uploadHandler = ActivatorUtilities.CreateInstance<UploadHandler>(host.Services);
+
+// Prepare the request
+var request = new UploadRequest { Content = "Hello World" };
+var commandRequest = new UploadDocument { Request = request };
+
+// Execute the endpoint logic directly
+var result = await uploadHandler.ExecuteAsync(commandRequest, default);
+
+// Get the response
+Console.WriteLine(result);

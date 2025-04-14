@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Capyndex\Tests\Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataSeed", "DataSeed\DataSeed.csproj", "{5A25ED79-7B85-4296-83FF-27D21DC91147}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CronExample", "CronExample\CronExample.csproj", "{7FD0F448-58F8-4513-A352-ABA4FF6C6281}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{5A25ED79-7B85-4296-83FF-27D21DC91147}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A25ED79-7B85-4296-83FF-27D21DC91147}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A25ED79-7B85-4296-83FF-27D21DC91147}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD0F448-58F8-4513-A352-ABA4FF6C6281}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD0F448-58F8-4513-A352-ABA4FF6C6281}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD0F448-58F8-4513-A352-ABA4FF6C6281}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD0F448-58F8-4513-A352-ABA4FF6C6281}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
