@@ -1,4 +1,5 @@
 ﻿using Capyndex.DataSeeding;
+using DataSeed;
 
 try
 {
@@ -6,7 +7,7 @@ try
     Console.WriteLine("-------------------------------");
 
     var baseUrl = "http://localhost:5000";
-    var documentCount = 100;
+    var documentCount = 3000;
 
 // Allow command line arguments to override defaults
     if (args.Length > 0)
@@ -21,7 +22,6 @@ try
 
     Console.WriteLine($"Using base URL: {baseUrl}");
     Console.WriteLine($"Documents to seed: {documentCount}");
-    Console.WriteLine("Press Enter to start seeding or Ctrl+C to cancel...");
     Console.ReadLine();
 
     var seeder = new DataSeeder(baseUrl);

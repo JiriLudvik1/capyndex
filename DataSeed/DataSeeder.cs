@@ -1,35 +1,76 @@
-﻿using System.Text;
+﻿using Capyndex.DataSeeding;
+using System.Text;
 using System.Text.Json;
 
-namespace Capyndex.DataSeeding;
+namespace DataSeed;
 
 public class DataSeeder
 {
     private readonly HttpClient _httpClient;
     private readonly Random _random = new();
+    private readonly int _maxConcurrentRequests;
 
-    public DataSeeder(string baseUrl)
+    public DataSeeder(string baseUrl, int maxConcurrentRequests = 200)
     {
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(baseUrl)
         };
+        _maxConcurrentRequests = maxConcurrentRequests;
     }
 
     public async Task SeedDataAsync(int count = 100)
     {
-        Console.WriteLine($"Starting to seed {count} documents...");
+        Console.WriteLine($"Starting to seed {count} documents with {_maxConcurrentRequests} parallel requests...");
 
+        // Create all document contents first
+        var contents = Enumerable.Range(0, count)
+            .Select(_ => GenerateRandomContent())
+            .ToList();
+
+        // Progress counter
+        int processedCount = 0;
+
+        // Create a list to hold all tasks
+        List<Task> allTasks = new List<Task>();
+
+        // Use SemaphoreSlim to control concurrency
+        using var throttler = new SemaphoreSlim(_maxConcurrentRequests);
+
+        // Start all tasks with throttling
         for (int i = 0; i < count; i++)
         {
-            var content = GenerateRandomContent();
-            await UploadContentAsync(content);
+            // Wait for a slot before starting a new task
+            await throttler.WaitAsync();
 
-            if (i % 10 == 0)
+            int index = i; // Capture for closure
+
+            // Start the task and add it to our collection
+            Task task = Task.Run(async () =>
             {
-                Console.WriteLine($"Uploaded {i} documents");
-            }
+                try
+                {
+                    await UploadContentAsync(contents[index]);
+
+                    // Update progress
+                    int current = Interlocked.Increment(ref processedCount);
+                    if (current % 10 == 0 || current == count)
+                    {
+                        Console.WriteLine($"Uploaded {current}/{count} documents");
+                    }
+                }
+                finally
+                {
+                    // Always release the semaphore when done
+                    throttler.Release();
+                }
+            });
+
+            allTasks.Add(task);
         }
+
+        // Wait for all tasks to complete
+        await Task.WhenAll(allTasks);
 
         Console.WriteLine("Data seeding completed!");
     }
