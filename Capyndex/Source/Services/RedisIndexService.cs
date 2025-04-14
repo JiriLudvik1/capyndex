@@ -1,9 +1,11 @@
-﻿using Capyndex.Models;
+﻿using Capyndex.Database;
+using Capyndex.Models;
+using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
 namespace Capyndex.Services;
 
-public class RedisIndexService(IConnectionMultiplexer redis)
+public class RedisIndexService(IConnectionMultiplexer redis, IServiceProvider serviceProvider)
 {
     private readonly IDatabase _db = redis.GetDatabase();
 
@@ -81,6 +83,19 @@ public class RedisIndexService(IConnectionMultiplexer redis)
         // For extremely large queries, limit terms to the most significant ones
         if (terms.Count > 20) // You can adjust this threshold based on your needs
         {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var documents =
+                await dbContext.Documents
+                               .Where(d => d.Content.Contains(query))
+                               .AsNoTracking()
+                               .ToListAsync();
+
+            if (documents.Count == 1)
+            {
+                return documents.Select(d => d.Id).ToArray();
+            }
+
             // Keep only the first 20 terms or filter to keep longer, more significant terms
             terms = terms.Where(t => t.Length > 3)
                          .Take(20)
