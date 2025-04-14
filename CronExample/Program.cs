@@ -14,7 +14,7 @@ using StackExchange.Redis;
 var builder = new HostApplicationBuilder();
 
 // Register necessary services
-// builder.Services.AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All);
+builder.Services.AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All);
 builder.Services.AddSingleton<RedisIndexService>();
 
 var connectionString = "Host=localhost;Port=5432;Database=documents_db;Username=postgres;Password=password";
@@ -62,8 +62,12 @@ var uploadHandler = ActivatorUtilities.CreateInstance<UploadHandler>(host.Servic
 var request = new UploadRequest { Content = "Hello World" };
 var commandRequest = new UploadDocument { Request = request };
 
-// Execute the endpoint logic directly
+
 var result = await uploadHandler.ExecuteAsync(commandRequest, default);
 
-// Get the response
 Console.WriteLine(result);
+return;
+
+//will be used in API like this:
+var resp = await commandRequest.ExecuteAsync(default);
+Console.WriteLine(resp);
