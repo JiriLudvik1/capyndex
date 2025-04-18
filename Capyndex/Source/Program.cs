@@ -25,19 +25,13 @@ builder.Services.AddDbContext<AppDbContext>(
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString)
         {
             // The minimum number of connections in the pool
-            MinPoolSize = 5,
-
-            // The maximum number of connections in the pool
+            MinPoolSize = 10,
             MaxPoolSize = 100,
-
-            // Connection Lifetime (seconds) - how long a connection can remain unused before being discarded
-            ConnectionIdleLifetime = 300,
-
-            // Enable connection pruning for long-running applications
+            ConnectionIdleLifetime = 60,
             ConnectionPruningInterval = 10,
-
-            // Timeout for command execution (seconds)
-            CommandTimeout = 30
+            CommandTimeout = 30,
+            Pooling = true,
+            KeepAlive = 30
         };
 
         options.UseNpgsql(
